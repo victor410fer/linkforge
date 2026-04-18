@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en" data-view="landing">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bedusec — Pishing link generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════ */
+    :root {
+      --bg:        #0b0b10;
+      --surface:   rgba(255,255,255,0.04);
+      --border:    rgba(255,255,255,0.08);
+      --border-hi: rgba(139,92,246,0.5);
+      --purple:    #8b5cf6;
+      --purple-d:  #6d28d9;
+      --purple-lo: rgba(139,92,246,0.12);
+      --text:      #f0f0f5;
+      --muted:     rgba(240,240,245,0.45);
+      --radius:    16px;
+      --radius-sm: 10px;
+      --sidebar-w: 260px;
+      --transition: 0.2s ease;
+    }
+
+    /* ═══════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; border: none; outline: none; }
+    input { font-family: inherit; outline: none; }
+
+    /* Hide sections based on view */
+    [data-view="landing"] #app-view  { display: none; }
+    [data-view="app"]     #land-view { display: none; }
+
+    /* ═══════════════════════════════════════════
+       SCROLLBAR
+    ═══════════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ═══════════════════════════════════════════
+       REUSABLE GLASS CARD
+    ═══════════════════════════════════════════ */
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+    }
+
+    /* ═══════════════════════════════════════════
+       BUTTON VARIANTS
+    ═══════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; border-radius: var(--radius-sm);
+      font-size: 0.9rem; font-weight: 500;
+      transition: all var(--transition);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple), var(--purple-d));
+      color: #fff;
+      box-shadow: 0 0 24px rgba(139,92,246,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 36px rgba(139,92,246,0.5); }
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { border-color: var(--border-hi); background: var(--purple-lo); }
+    .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
+    .btn-danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+    /* Pro badge */
+    .crown { font-size: 0.75em; }
+
+    /* ═══════════════════════════════════════════
+       ██ LANDING PAGE
+    ═══════════════════════════════════════════ */
+    #land-view { min-height: 100vh; }
+
+    /* NAV */
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 5%;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(11,11,16,0.7);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; }
+    .nav-logo span { color: var(--purple); }
+    .nav-links { display: flex; gap: 32px; font-size: 0.9rem; color: var(--muted); }
+    .nav-links a:hover { color: var(--text); }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 5% 80px;
+      position: relative; overflow: hidden;
+    }
+    /* Animated glow blob */
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%);
+      border-radius: 50%;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      animation: pulse 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes pulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.7; }
+      50%      { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 99px;
+      background: var(--purple-lo); border: 1px solid var(--border-hi);
+      font-size: 0.8rem; color: var(--purple);
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      font-weight: 800; line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: normal; color: var(--purple); }
+    .hero p {
+      font-size: 1.1rem; color: var(--muted);
+      max-width: 540px; line-height: 1.7;
+      margin-bottom: 40px;
+    }
+    .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+    .hero-ctas .btn { padding: 13px 26px; font-size: 0.95rem; }
+
+    /* FEATURES */
+    .features {
+      padding: 100px 5%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .section-label {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--purple); margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700; text-align: center; margin-bottom: 60px;
+    }
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; width: 100%; max-width: 1000px;
+    }
+    .feat-card {
+      padding: 32px 28px;
+      transition: transform var(--transition), border-color var(--transition);
+    }
+    .feat-card:hover { transform: translateY(-4px); border-color: var(--border-hi); }
+    .feat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--purple-lo); border: 1px solid var(--border-hi);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 20px;
+    }
+    .feat-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    .feat-card p  { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+    .feat-pro-tag {
+      display: inline-block; font-size: 0.7rem;
+      background: var(--purple-lo); border: 1px solid var(--border-hi);
+      color: var(--purple); padding: 2px 8px; border-radius: 99px;
+      margin-left: 8px; vertical-align: middle;
+    }
+
+    /* PRICING */
+    .pricing {
+      padding: 100px 5%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; width: 100%; max-width: 680px; margin-top: 0;
+    }
+    .price-card { padding: 36px 32px; }
+    .price-card.pro {
+      border-color: var(--border-hi);
+      box-shadow: 0 0 40px rgba(139,92,246,0.12);
+      transform: translateY(-6px);
+    }
+    .price-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px; }
+    .price-amount { font-family: 'Syne', sans-serif; font-size: 2.6rem; font-weight: 800; }
+    .price-amount span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+    .price-features { list-style: none; margin: 24px 0; display: flex; flex-direction: column; gap: 10px; }
+    .price-features li { font-size: 0.88rem; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+    .price-features li::before { content: '✓'; color: var(--purple); font-weight: 700; }
+
+    /* FOOTER */
+    .footer {
+      text-align: center; padding: 40px 5%;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem; color: var(--muted);
+    }
+
+    /* ═══════════════════════════════════════════
+        APP VIEW
+    ═══════════════════════════════════════════ */
+    #app-view {
+      display: flex; height: 100vh; overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: rgba(255,255,255,0.025);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      height: 100vh; overflow: hidden;
+      padding: 0;
+    }
+    .sidebar-top {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:800; margin-bottom:12px; }
+    .sidebar-logo span { color: var(--purple); }
+    /* New link button */
+    .new-link-btn {
+      width: 100%;
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      border-radius: var(--radius-sm);
+      padding: 9px 14px;
+      font-size: 0.85rem;
+      display: flex; align-items: center; gap: 8px;
+      transition: all var(--transition);
+    }
+    .new-link-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--purple-lo); }
+
+    /* History list */
+    .sidebar-section-label {
+      padding: 14px 16px 6px;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .history-list {
+      flex: 1; overflow-y: auto;
+      padding: 0 8px;
+    }
+    .history-item {
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 0.82rem; color: var(--muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .history-item:hover { background: var(--surface); color: var(--text); }
+    .history-item.active { background: var(--purple-lo); color: var(--purple); }
+
+    /* Pro nav items */
+    .sidebar-pro-section {
+      padding: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .pro-nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; border-radius: 8px;
+      font-size: 0.84rem; color: var(--muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+    }
+    .pro-nav-item:hover { background: var(--surface); color: var(--text); }
+    .pro-nav-item.locked { opacity: 0.5; }
+    .pro-nav-item.locked:hover { cursor: not-allowed; }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      padding: 10px 8px 14px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sidebar-footer-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; border-radius: 8px;
+      font-size: 0.84rem; color: var(--muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .sidebar-footer-item:hover { background: var(--surface); color: var(--text); }
+    .upgrade-btn-side {
+      background: linear-gradient(135deg, var(--purple), var(--purple-d));
+      color: #fff !important;
+      font-weight: 600;
+    }
+
+    /* ── MAIN WORKSPACE ── */
+    .workspace {
+      flex: 1; display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-title { font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:600; color: var(--muted); }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; cursor: pointer;
+      transition: all var(--transition); color: var(--muted);
+    }
+    .icon-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    /* Profile dropdown */
+    .profile-wrap { position: relative; }
+    .profile-dropdown {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      width: 180px;
+      background: #1a1a24; border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      display: none; z-index: 200;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .profile-dropdown.open { display: block; }
+    .dropdown-item {
+      padding: 10px 14px; font-size: 0.84rem; color: var(--muted);
+      cursor: pointer; transition: all var(--transition);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dropdown-item:hover { background: var(--surface); color: var(--text); }
+    .dropdown-item.logout { color: #f87171; }
+
+    /* Main content area */
+    .main-content {
+      flex: 1; overflow-y: auto;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 28px;
+    }
+    /* Empty state / generator */
+    .generator-wrap { width: 100%; max-width: 580px; }
+    .gen-welcome { font-size: 1.5rem; font-family:'Syne',sans-serif; font-weight:700; margin-bottom:6px; }
+    .gen-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 32px; }
+    .gen-input-row {
+      display: flex; gap: 10px;
+    }
+    .gen-input {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 13px 16px;
+      color: var(--text); font-size: 0.9rem;
+      transition: border-color var(--transition);
+    }
+    .gen-input:focus { border-color: var(--border-hi); }
+    .gen-input::placeholder { color: var(--muted); }
+
+    /* Result card */
+    .result-card {
+      margin-top: 28px;
+      padding: 28px;
+      display: none; /* shown via JS */
+    }
+    .result-card.visible { display: block; }
+    .result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+    .result-link {
+      font-family:'Syne',sans-serif; font-size: 1.6rem; font-weight:700;
+      color: var(--purple); margin-bottom: 20px;
+    }
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Link detail view */
+    .detail-view {
+      width: 100%; max-width: 580px;
+      display: none;
+    }
+    .detail-view.visible { display: block; }
+    .detail-header { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:700; color: var(--purple); margin-bottom:24px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    .detail-row:last-of-type { border: none; }
+    .detail-row span:first-child { color: var(--muted); }
+    .detail-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+
+    /* ═══════════════════════════════════════════
+       ██ COMMAND PALETTE — "/" shortcut
+    ═══════════════════════════════════════════ */
+    .palette-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding-top: 15vh;
+    }
+    .palette-overlay.open { display: flex; }
+    .palette-box {
+      width: 100%; max-width: 520px;
+      background: #14141e; border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    }
+    .palette-input {
+      width: 100%; padding: 16px 18px;
+      background: transparent; border: none;
+      color: var(--text); font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .palette-list { padding: 8px; }
+    .palette-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 12px; border-radius: 8px;
+      font-size: 0.88rem; color: var(--muted);
+      cursor: pointer; transition: all var(--transition);
+    }
+    .palette-item:hover, .palette-item.selected {
+      background: var(--purple-lo); color: var(--text);
+    }
+    .palette-item-icon { width: 28px; text-align: center; }
+
+    /* ═══════════════════════════════════════════
+       ██ UPGRADE MODAL
+    ═══════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      width: 100%; max-width: 440px;
+      padding: 40px;
+      background: #13131d;
+      border: 1px solid var(--border-hi);
+      border-radius: 20px;
+      box-shadow: 0 0 60px rgba(139,92,246,0.2);
+      text-align: center;
+    }
+    .modal-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .modal-box h2 { font-size: 1.6rem; margin-bottom: 8px; }
+    .modal-box p { font-size: 0.88rem; color: var(--muted); margin-bottom: 28px; }
+    .modal-features { list-style: none; text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
+    .modal-features li { font-size: 0.88rem; display: flex; gap: 10px; align-items: center; }
+    .modal-features li::before { content: '✓'; color: var(--purple); font-weight: 700; }
+    .modal-price { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; margin-bottom: 24px; }
+    .modal-price span { font-size: 0.9rem; font-weight: 400; color: var(--muted); }
+    .modal-upgrade-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--purple), var(--purple-d));
+      color: #fff; border-radius: var(--radius-sm);
+      padding: 14px; font-size: 1rem; font-weight: 600;
+      font-family: inherit;
+      box-shadow: 0 0 30px rgba(139,92,246,0.35);
+      transition: all var(--transition);
+      border: none; cursor: pointer;
+    }
+    .modal-upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 0 48px rgba(139,92,246,0.55); }
+    .modal-close {
+      display: block; margin-top: 16px;
+      font-size: 0.82rem; color: var(--muted); cursor: pointer;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ═══════════════════════════════════════════
+       TOAST NOTIFICATION
+    ═══════════════════════════════════════════ */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1f1f30; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 20px;
+      font-size: 0.85rem; color: var(--text);
+      opacity: 0; transition: all 0.3s ease;
+      pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LANDING PAGE VIEW
+═══════════════════════════════════════════ -->
+<div id="land-view">
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-logo">Link<span>Forge</span></div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <div class="nav-actions">
+      <!-- LOGIN: POST /api/auth/login -->
+      <button class="btn btn-ghost btn-sm" onclick="goToApp()">Login</button>
+      <!-- SIGNUP: POST /api/auth/register -->
+      <button class="btn btn-primary btn-sm" onclick="goToApp()">Get Started</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">✦ The Ulitimate pishing link generator</div>
+    <h1>Shorten. Manage.<br/><em>Scale.</em></h1>
+    <p>The Ultimate Phishing link build for Ethical hackers .</p>
+    <p>Built for Ethical/Educational purpose only.</p>
+    <div class="hero-ctas">
+      <!-- Calls /api/auth/register on actual backend -->
+      <button class="btn btn-primary" onclick="goToApp()">Get Started Free</button>
+      <button class="btn btn-ghost" onclick="showUpgradeModal()">Upgrade to Pro 👑</button>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="section-label">What you get</div>
+    <h2 class="section-title">Everything you need</h2>
+    <div class="feat-grid">
+      <div class="glass feat-card">
+        <div class="feat-icon">⚡</div>
+        <h3>Smart Generator</h3>
+        <p>create pishing link, smart slug detection and duplicate prevention.</p>
+      </div>
+      <div class="glass feat-card">
+        <div class="feat-icon">📦</div>
+        <h3>Bulk Generator <span class="feat-pro-tag">👑 Pro</span></h3>
+        <p>Generate 100+ pishing link. Save hours of manual work.</p>
+      </div>
+      <div class="glass feat-card">
+        <div class="feat-icon">📊</div>
+        <h3>Analytics <span class="feat-pro-tag">👑 Pro</span></h3>
+        <p>Track clicks, geographic location, device type, and referral sources in real time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing">
+    <div class="section-label">Simple pricing</div>
+    <h2 class="section-title">Start free, scale when ready</h2>
+    <div class="pricing-grid">
+      <div class="glass price-card">
+        <div class="price-label">Free</div>
+        <div class="price-amount">$0<span>/month</span></div>
+        <ul class="price-features">
+          <li>Basic link generation</li>
+          <li>Limited history (5 links)</li>
+          <li>Community support</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%" onclick="goToApp()">Get Started</button>
+      </div>
+      <div class="glass price-card pro">
+        <div class="price-label">Pro 👑</div>
+        <div class="price-amount">$10<span>/month</span></div>
+        <ul class="price-features">
+          <li>Bulk link generation</li>
+          <li>Unlimited history</li>
+          <li>Full analytics</li>
+          <li>Priority support</li>
+          <li>Custom domains</li>
+        </ul>
+        <!-- UPGRADE: POST /api/billing/subscribe -->
+        <button class="btn btn-primary" style="width:100%" onclick="showUpgradeModal()">Upgrade to Pro</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    © 2026 LinkForge. Built with care for creators.
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     APP VIEW (authenticated)
+═══════════════════════════════════════════ -->
+<div id="app-view">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-logo">Link<span>Forge</span></div>
+      <!-- Clears workspace to generator view -->
+      <button class="new-link-btn" onclick="showGenerator()">
+        <span>＋</span> New Link
+      </button>
+    </div>
+
+    <div class="sidebar-section-label">🕒 History</div>
+    <!-- HISTORY: GET /api/links?page=1&limit=20 -->
+    <div class="history-list" id="historyList">
+      <!-- Populated by loadHistory() -->
+    </div>
+
+    <div class="sidebar-pro-section">
+      <!-- PRO: GET /api/links/bulk -->
+      <div class="pro-nav-item locked" onclick="showUpgradeModal()">
+        📦 Bulk Generator <span class="crown">👑</span>
+      </div>
+      <!-- PRO: GET /api/analytics -->
+      <div class="pro-nav-item locked" onclick="showUpgradeModal()">
+        📊 Analytics <span class="crown">👑</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-item upgrade-btn-side" onclick="showUpgradeModal()">
+        ⭐ Upgrade to Pro
+      </div>
+      <div class="sidebar-footer-item" onclick="openProfile()">
+        👤 Profile
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main workspace ── -->
+  <div class="workspace">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">LinkForge</div>
+      <div class="topbar-right">
+        <!-- NOTIFICATIONS: GET /api/notifications -->
+        <div class="icon-btn" title="Notifications">🔔</div>
+        <!-- Profile dropdown -->
+        <div class="profile-wrap">
+          <div class="icon-btn" onclick="toggleProfile()" title="Profile">👤</div>
+          <div class="profile-dropdown" id="profileDropdown">
+            <div class="dropdown-item"> My Profile</div>
+            <div class="dropdown-item">⚙️ Settings</div>
+            <!-- LOGOUT: POST /api/auth/logout -->
+            <div class="dropdown-item logout" onclick="logout()">⬅️ Logout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable content area -->
+    <div class="main-content" id="mainContent">
+
+      <!-- GENERATOR STATE -->
+      <div class="generator-wrap" id="generatorWrap">
+        <div class="gen-welcome" id="genWelcome">👋 Welcome back</div>
+        <div class="gen-sub">What link would you like to generate?</div>
+        <div class="gen-input-row">
+          <input
+            class="gen-input"
+            id="urlInput"
+            type="url"
+            placeholder="Paste URL here…"
+            onkeydown="if(event.key==='Enter') generateLink()"
+          />
+          <!-- SHORTEN: POST /api/links { "url": "..." } -->
+          <button class="btn btn-primary" onclick="generateLink()">Generate</button>
+        </div>
+
+        <!-- Result (shown after generation) -->
+        <div class="glass result-card" id="resultCard">
+          <div class="result-label">Your link is ready</div>
+          <div class="result-link" id="resultLink">linkforge.io/abc123</div>
+          <div class="result-actions">
+            <button class="btn btn-ghost btn-sm" onclick="copyLink()">📋 Copy</button>
+            <button class="btn btn-ghost btn-sm" onclick="shareLink()">🔗 Share</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETAIL STATE (shown when clicking history item) -->
+      <div class="detail-view glass" id="detailView" style="padding:28px">
+        <div class="detail-header" id="detailTitle">linkforge.io/abc123</div>
+        <!-- GET /api/links/:id for full details -->
+        <div class="detail-row">
+          <span>Original URL</span>
+          <span id="detailOriginal" style="color:var(--muted);font-size:0.82rem;max-width:60%;text-align:right;word-break:break-all"></span>
+        </div>
+        <div class="detail-row">
+          <span>Date Created</span>
+          <span id="detailDate"></span>
+        </div>
+        <div class="detail-row">
+          <span>Clicks</span>
+          <span id="detailClicks" style="color:var(--purple);font-weight:600"></span>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-ghost btn-sm" onclick="copyDetailLink()">📋 Copy</button>
+          <!-- PUT /api/links/:id -->
+          <button class="btn btn-ghost btn-sm">✏️ Edit</button>
+          <!-- DELETE /api/links/:id -->
+          <button class="btn btn-danger btn-sm" onclick="deleteLink()">🗑 Delete</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     COMMAND PALETTE — press "/" in app
+═══════════════════════════════════════════ -->
+<div class="palette-overlay" id="paletteOverlay" onclick="closePalette(event)">
+  <div class="palette-box">
+    <input
+      class="palette-input"
+      id="paletteInput"
+      placeholder="Search commands…"
+      oninput="filterPalette(this.value)"
+      onkeydown="paletteKey(event)"
+      autocomplete="off"
+    />
+    <div class="palette-list" id="paletteList"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     UPGRADE MODAL
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="upgradeModal" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-icon">👑</div>
+    <h2>Unlock Premium</h2>
+    <p>Everything you need to manage links at scale.</p>
+    <ul class="modal-features">
+      <li>Bulk link generation (100+ at once)</li>
+      <li>Unlimited link history</li>
+      <li>Real-time analytics dashboard</li>
+      <li>Custom domains support</li>
+      <li>Priority support</li>
+    </ul>
+    <div class="modal-price">$9<span>/month</span></div>
+    <!-- BILLING: POST /api/billing/subscribe { plan: "pro" } -->
+    <button class="modal-upgrade-btn" onclick="handleUpgrade()">Upgrade Now →</button>
+    <span class="modal-close" onclick="closeUpgradeModal()">Maybe later</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ═══════════════════════════════════════════
+     CONFIG & STATE
+  ═══════════════════════════════════════════ */
+  const API_BASE = '';   // empty = same origin
+  let authToken = localStorage.getItem('access_token') || null;
+
+  const state = {
+    currentView: 'landing',
+    user: { name: 'User', isPro: false },
+    links: [],
+    activeLink: null,
+    paletteSelected: 0,
+  };
+
+  /* ─── Helper for authenticated fetch ─── */
+  async function apiFetch(endpoint, options = {}) {
+    if (!options.headers) options.headers = {};
+    if (authToken) {
+      options.headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    options.headers['Content-Type'] = 'application/json';
+    const res = await fetch(`${API_BASE}${endpoint}`, options);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    return res.json();
+  }
+
+  /* ═══════════════════════════════════════════
+     AUTH FLOW (simplified prompt)
+  ═══════════════════════════════════════════ */
+  async function login(email, password) {
+    const formData = new URLSearchParams();
+    formData.append('username', email);  // OAuth2 expects 'username'
+    formData.append('password', password);
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      authToken = data.access_token;
+      localStorage.setItem('access_token', authToken);
+      state.user.name = email.split('@')[0];
+      goToApp();
+    } else {
+      alert('Login failed: ' + (data.detail || 'Unknown error'));
+    }
+  }
+
+  async function register(email, username, password) {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, username, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      authToken = data.access_token;
+      localStorage.setItem('access_token', authToken);
+      state.user.name = username;
+      goToApp();
+    } else {
+      alert('Registration failed: ' + (data.detail || 'Unknown error'));
+    }
+  }
+
+  function goToApp() {
+    if (!authToken) {
+      const choice = prompt('Enter "login email pass" or "register email user pass"');
+      if (choice) {
+        const parts = choice.split(' ');
+        if (parts[0] === 'login' && parts.length >= 3) {
+          login(parts[1], parts[2]);
+          return;
+        } else if (parts[0] === 'register' && parts.length >= 4) {
+          register(parts[1], parts[2], parts[3]);
+          return;
+        }
+      }
+      alert('Please provide valid credentials');
+      return;
+    }
+    document.documentElement.dataset.view = 'app';
+    loadHistory();
+    document.getElementById('genWelcome').textContent = `👋 Welcome back, ${state.user.name}`;
+  }
+
+  function logout() {
+    localStorage.removeItem('access_token');
+    authToken = null;
+    goToLanding();
+  }
+
+  function goToLanding() {
+    closeUpgradeModal();
+    document.documentElement.dataset.view = 'landing';
+    document.getElementById('profileDropdown').classList.remove('open');
+  }
+
+  /* ═══════════════════════════════════════════
+     HISTORY SIDEBAR (GET /api/links)
+  ═══════════════════════════════════════════ */
+  async function loadHistory() {
+    try {
+      const links = await apiFetch('/api/links?limit=20');
+      state.links = links;
+      const list = document.getElementById('historyList');
+      list.innerHTML = '';
+      links.forEach(link => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.textContent = `linkforge.io/${link.slug}`;
+        item.dataset.id = link.id;
+        item.onclick = () => openLinkDetail(link.id);
+        list.appendChild(item);
+      });
+    } catch (e) {
+      showToast('Failed to load links. Are you logged in?');
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     GENERATOR (POST /api/links)
+  ═══════════════════════════════════════════ */
+  function showGenerator() {
+    document.getElementById('generatorWrap').style.display = 'block';
+    document.getElementById('detailView').classList.remove('visible');
+    document.getElementById('resultCard').classList.remove('visible');
+    document.getElementById('urlInput').value = '';
+    document.getElementById('topbarTitle').textContent = 'LinkForge';
+    document.querySelectorAll('.history-item').forEach(i => i.classList.remove('active'));
+    state.activeLink = null;
+  }
+
+  async function generateLink() {
+    const input = document.getElementById('urlInput');
+    const url = input.value.trim();
+    if (!url) return showToast('Please paste a URL first.');
+
+    try {
+      const data = await apiFetch('/api/links', {
+        method: 'POST',
+        body: JSON.stringify({ url })
+      });
+      state.links.unshift(data);
+      loadHistory();
+      renderResult(data.slug);
+    } catch (e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  function renderResult(slug) {
+    document.getElementById('resultLink').textContent = `linkforge.io/${slug}`;
+    document.getElementById('resultCard').classList.add('visible');
+  }
+
+  let resultSlug = '';
+  function copyLink() {
+    resultSlug = document.getElementById('resultLink').textContent;
+    navigator.clipboard.writeText(`https://${resultSlug}`).catch(()=>{});
+    showToast('✅ Link copied!');
+  }
+
+  function shareLink() {
+    showToast('🔗 Share link opened');
+  }
+
+  /* ═══════════════════════════════════════════
+     LINK DETAIL (GET /api/links/:id)
+  ═══════════════════════════════════════════ */
+  async function openLinkDetail(id) {
+    try {
+      const link = await apiFetch(`/api/links/${id}`);
+      state.activeLink = link;
+
+      document.querySelectorAll('.history-item').forEach(i => {
+        i.classList.toggle('active', i.dataset.id == id);
+      });
+
+      document.getElementById('generatorWrap').style.display = 'none';
+      document.getElementById('detailView').classList.add('visible');
+      document.getElementById('topbarTitle').textContent = `linkforge.io/${link.slug}`;
+      document.getElementById('detailTitle').textContent = `linkforge.io/${link.slug}`;
+      document.getElementById('detailOriginal').textContent = link.original_url;
+      document.getElementById('detailDate').textContent = new Date(link.created_at).toLocaleDateString();
+      document.getElementById('detailClicks').textContent = link.clicks;
+    } catch (e) {
+      showToast('Failed to load link details');
+    }
+  }
+
+  function copyDetailLink() {
+    if (!state.activeLink) return;
+    navigator.clipboard.writeText(`https://linkforge.io/${state.activeLink.slug}`).catch(()=>{});
+    showToast('✅ Link copied!');
+  }
+
+  async function deleteLink() {
+    if (!state.activeLink) return;
+    try {
+      await apiFetch(`/api/links/${state.activeLink.id}`, { method: 'DELETE' });
+      state.links = state.links.filter(l => l.id !== state.activeLink.id);
+      loadHistory();
+      showGenerator();
+      showToast('🗑 Link deleted');
+    } catch (e) {
+      showToast('Delete failed');
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     PROFILE DROPDOWN
+  ═══════════════════════════════════════════ */
+  function toggleProfile() {
+    document.getElementById('profileDropdown').classList.toggle('open');
+  }
+
+  function openProfile() {
+    showToast('Profile settings coming soon');
+    document.getElementById('profileDropdown').classList.remove('open');
+  }
+
+  document.addEventListener('click', e => {
+    const wrap = document.querySelector('.profile-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById('profileDropdown').classList.remove('open');
+    }
+  });
+
+  /* ═══════════════════════════════════════════
+     COMMAND PALETTE — "/" key
+  ═══════════════════════════════════════════ */
+  const commands = [
+    { icon:'⚡', label:'Generate Link',    action: showGenerator },
+    { icon:'🕒', label:'Open History',     action: () => {} },
+    { icon:'📦', label:'Bulk Generate 👑', action: showUpgradeModal },
+    { icon:'⭐', label:'Upgrade to Pro',   action: showUpgradeModal },
+    { icon:'📊', label:'Analytics 👑',     action: showUpgradeModal },
+    { icon:'⬅️', label:'Go to Landing',   action: goToLanding },
+  ];
+  let filteredCmds = [...commands];
+
+  document.addEventListener('keydown', e => {
+    if (document.documentElement.dataset.view !== 'app') return;
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      openPalette();
+    }
+    if (e.key === 'Escape') closePaletteForce();
+  });
+
+  function openPalette() {
+    filteredCmds = [...commands];
+    renderPaletteItems();
+    document.getElementById('paletteOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('paletteInput').focus(), 50);
+  }
+
+  function closePalette(e) {
+    if (e.target === document.getElementById('paletteOverlay')) closePaletteForce();
+  }
+
+  function closePaletteForce() {
+    document.getElementById('paletteOverlay').classList.remove('open');
+    document.getElementById('paletteInput').value = '';
+    state.paletteSelected = 0;
+  }
+
+  function filterPalette(q) {
+    filteredCmds = commands.filter(c => c.label.toLowerCase().includes(q.toLowerCase()));
+    state.paletteSelected = 0;
+    renderPaletteItems();
+  }
+
+  function renderPaletteItems() {
+    const list = document.getElementById('paletteList');
+    list.innerHTML = '';
+    filteredCmds.forEach((cmd, i) => {
+      const el = document.createElement('div');
+      el.className = 'palette-item' + (i === state.paletteSelected ? ' selected' : '');
+      el.innerHTML = `<span class="palette-item-icon">${cmd.icon}</span>${cmd.label}`;
+      el.onclick = () => { closePaletteForce(); cmd.action(); };
+      list.appendChild(el);
+    });
+  }
+
+  function paletteKey(e) {
+    if (e.key === 'ArrowDown') {
+      state.paletteSelected = Math.min(state.paletteSelected + 1, filteredCmds.length - 1);
+      renderPaletteItems();
+    } else if (e.key === 'ArrowUp') {
+      state.paletteSelected = Math.max(state.paletteSelected - 1, 0);
+      renderPaletteItems();
+    } else if (e.key === 'Enter') {
+      const cmd = filteredCmds[state.paletteSelected];
+      if (cmd) { closePaletteForce(); cmd.action(); }
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     UPGRADE MODAL (POST /api/billing/subscribe)
+  ═══════════════════════════════════════════ */
+  function showUpgradeModal() {
+    document.getElementById('upgradeModal').classList.add('open');
+  }
+
+  function closeUpgradeModal() {
+    document.getElementById('upgradeModal').classList.remove('open');
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('upgradeModal')) closeUpgradeModal();
+  }
+
+  async function handleUpgrade() {
+    try {
+      await apiFetch('/api/billing/subscribe', {
+        method: 'POST',
+        body: JSON.stringify({ plan: 'pro' })
+      });
+      state.user.isPro = true;
+      closeUpgradeModal();
+      showToast('🎉 Welcome to Pro!');
+    } catch (e) {
+      showToast('Upgrade failed: ' + e.message);
+    }
+  }
+
+  /* ═══════════════════════════════════════════
+     TOAST HELPER
+  ═══════════════════════════════════════════ */
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+</script>
+</body>
+</html>
